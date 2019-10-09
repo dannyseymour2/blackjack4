@@ -12,7 +12,6 @@ public class HandWithCards extends Hand {
   private boolean hasAce;
 
 
-  private
   @Relation(entity = Card.class, entityColumn = "hand_id", parentColumn = "hand_id")
   private List<Card> cards;
 

@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import edu.cnm.deepdive.blackjack4.R;
@@ -12,12 +14,27 @@ import edu.cnm.deepdive.blackjack4.viewmodel.MainViewModel;
 
 public class PlayerHandFragment extends HandFragment {
 
+  private FloatingActionButton hitMe;
+  private FloatingActionButton stay;
+  private boolean staying;
+
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
     View view = super.onCreateView(inflater, container, savedInstanceState);
-    FloatingActionButton hitMe = view.findViewById(R.id.hit_me);
-    hitMe.setOnClickListener((v) -> getViewModel().hitPlayer());
+    hitMe = view.findViewById(R.id.hit_me);
+    hitMe.setOnClickListener((v) -> {
+      if (getHand().getHardValue()<21) {
+        getViewModel().hitPlayer();
+      }
+    });
+    stay = view.findViewById(R.id.stay);
+    stay.setOnClickListener((v) -> {
+      staying = true;
+      hitMe.hide();
+      stay.hide();
+      getViewModel().startDealer();
+    });
     return view;
   }
 
@@ -31,4 +48,27 @@ public class PlayerHandFragment extends HandFragment {
     return R.layout.fragment_player_hand;
   }
 
+  @Override
+  protected void updateValues(HandWithCards hand) {
+    super.updateValues(hand);
+    if (hand.getHardValue()<21) {
+      hitMe.show();
+      stay.show();
+    }
+    else if (hand.getSoftValue()==21){
+      hitMe.hide();
+      stay.hide();
+      getViewModel().startDealer();
+    }
+    else{
+      hitMe.hide();
+      stay.hide();
+    }
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    getViewModel().getRound().observe(getActivity(), (round)-> staying = false);
+  }
 }

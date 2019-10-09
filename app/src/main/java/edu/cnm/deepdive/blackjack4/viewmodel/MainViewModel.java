@@ -113,6 +113,7 @@ public class MainViewModel extends AndroidViewModel {
       this.playerHandId.postValue(handIds[1]);
     }).start();
   }
+
   public void hitPlayer() {
     new Thread(() -> {
       CardDao dao = database.getCardDao();
@@ -121,14 +122,27 @@ public class MainViewModel extends AndroidViewModel {
       playerHandId.postValue(handId);
     }).start();
   }
-  private Card getTopCard(long handId){
+
+  private Card getTopCard(long handId) {
     Card card = database.getCardDao().getTopCardInShoe(shoeId);
     card.setShoeId(null);
     card.setHandId(handId);
     database.getCardDao().update(card);
-    if(card.getId() == markerId){
+    if (card.getId() == markerId) {
       shuffleNeeded = true;
     }
     return card;
+  }
+
+  public void startDealer() {
+    new Thread(() -> {
+      long handId = dealerHandId.getValue();
+      HandWithCards dealer = dealerHand.getValue();
+      List<Card> cards = dealer.getCards();
+      while (dealer.getHardValue() < 17 || dealer.getSoftValue() < 18) {
+        cards.add(getTopCard(handId));
+        dealerHandId.postValue(handId);
+      }
+    }).start();
   }
 }
